@@ -1,253 +1,129 @@
-# Go Mutexes Learning Repository
+# Learning Repository
 
-A comprehensive guide to understanding and using mutexes in Go, covering low-level implementation details, best practices, common use cases, and frequent pitfalls.
+A comprehensive collection of technical learning resources covering programming languages, system fundamentals, and best practices. Each topic includes detailed documentation, practical examples, and hands-on code.
 
 ## 📚 Contents
 
-### Main Documentation
-- **[go-mutexes.md](go-mutexes.md)** - Comprehensive guide covering:
-  - What mutexes are and why we need them
-  - Low-level implementation details (normal mode, starvation mode, fast/slow paths)
-  - Basic usage patterns
-  - RWMutex (read-write locks)
-  - Best practices
-  - Common use cases
-  - Frequent pitfalls
-  - Performance considerations
-  - Advanced patterns
+### Go Programming
 
-### Practical Examples
+Comprehensive Go language resources covering concurrency primitives and testing frameworks:
 
-All examples are runnable Go programs that demonstrate key concepts:
+- **[Go Documentation](go/README.md)** - Complete guide to Go packages and patterns
+  - [Mutexes](go/mutexes.md) - Understanding mutexes, RWMutex, and synchronization primitives
+  - [Atomic Operations](go/packages/atomic.md) - Lock-free synchronization with `sync/atomic`
+  - [Gomega Testing](go/packages/gomega.md) - Expressive matcher library for testing
+  - [Mutex Examples](go/examples-mutexes/) - Practical mutex usage patterns
+  - [Atomic Examples](go/examples/) - Working code using atomic operations
 
-1. **[examples/basic_mutex.go](examples/basic_mutex.go)**
-   - Unsafe vs safe counter (demonstrates race conditions)
-   - Bank account with concurrent deposits/withdrawals
-   - Basic mutex usage patterns
-   - Run with: `go run examples/basic_mutex.go`
-   - Detect races: `go run -race examples/basic_mutex.go`
+### Linux System Fundamentals
 
-2. **[examples/rwmutex.go](examples/rwmutex.go)**
-   - Read-write mutex for cache implementation
-   - Performance comparison: Mutex vs RWMutex
-   - Statistics tracker with RWMutex
-   - Run with: `go run examples/rwmutex.go`
+Deep dive into Linux kernel internals and system programming:
 
-3. **[examples/pitfalls.go](examples/pitfalls.go)**
-   - Deadlock prevention (lock ordering)
-   - Missing unlock (why to use defer)
-   - Blocking operations while holding locks
-   - Copying mutexes (pointer receivers)
-   - Lock contention and sharding
-   - Run with: `go run examples/pitfalls.go`
-
-4. **[examples/advanced.go](examples/advanced.go)**
-   - sync.Once for lazy initialization
-   - Try-lock pattern
-   - sync.Cond for producer-consumer
-   - Mutex vs atomic operations
-   - Double-checked locking vs sync.Once
-   - Read-copy-update pattern
-   - Run with: `go run examples/advanced.go`
+- **[Linux Documentation](linux/README.md)** - System-level concepts and implementation details
+  - [Kernel Buffers](linux/kernel-buffers.md) - Memory management, buffering mechanisms, and I/O optimization
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Go 1.16 or later (examples tested with Go 1.24)
-
-### Running Examples
+### Go Topics
 
 ```bash
-# Run all examples
-go run examples/basic_mutex.go
-go run examples/rwmutex.go
-go run examples/pitfalls.go
-go run examples/advanced.go
+# Navigate to Go directory
+cd go
 
-# Detect race conditions
-go run -race examples/basic_mutex.go
+# Run mutex examples
+go run examples-mutexes/basic_mutex.go
+go run -race examples-mutexes/pitfalls.go
 
-# Run with verbose output
-go run -v examples/basic_mutex.go
+# Run atomic examples and tests
+go test -v ./examples/
+go test -race ./examples/
 ```
 
-## 📖 Key Concepts
+### Linux Topics
 
-### When to Use Mutexes
-
-✅ **Use mutexes when:**
-- Protecting shared mutable state
-- Multiple goroutines access the same data structure
-- Operations involve multiple variables
-- Complex state transitions
-
-❌ **Don't use mutexes when:**
-- Single atomic variable (use `sync/atomic`)
-- Passing data between goroutines (use channels)
-- Data is immutable
-- Using already synchronized types (`sync.Map`, `sync.Pool`)
-
-### Mutex vs RWMutex
-
-**Use `sync.Mutex`:**
-- Simple mutual exclusion
-- Reads and writes are roughly equal
-- Critical sections are very short
-
-**Use `sync.RWMutex`:**
-- Many more reads than writes
-- Critical sections are long enough to amortize overhead
-- Need to allow concurrent reads
-
-### Performance Tips
-
-1. **Keep critical sections small** - only protect what needs protection
-2. **Use atomic operations** for simple counters and flags
-3. **Shard data structures** to reduce contention
-4. **Profile before optimizing** - measure with `-mutexprofile`
-5. **Consider lock-free alternatives** for very hot paths
-
-## 🔍 Common Pitfalls
-
-1. **Deadlocks** - Always acquire locks in consistent order
-2. **Forgetting to unlock** - Always use `defer` for unlocking
-3. **Copying mutexes** - Use pointer receivers, run `go vet`
-4. **Holding locks too long** - Don't do I/O or blocking ops while locked
-5. **Reentrant locking** - Go mutexes are NOT reentrant
-
-## 🛠️ Tools and Commands
+Browse the Linux documentation to understand kernel-level concepts:
 
 ```bash
-# Detect race conditions
-go run -race main.go
-go test -race ./...
-
-# Detect common mistakes (including mutex copying)
-go vet ./...
-
-# Profile lock contention
-go test -bench=. -mutexprofile=mutex.out
-go tool pprof mutex.out
-
-# Format code
-go fmt ./...
+cd linux
+# Read through kernel-buffers.md
 ```
-
-## 📊 Learning Path
-
-1. **Start with basics** - Read [go-mutexes.md](go-mutexes.md) introduction
-2. **Run basic examples** - Execute `basic_mutex.go` with and without `-race`
-3. **Understand RWMutex** - Study `rwmutex.go` for read-heavy workloads
-4. **Learn common pitfalls** - Review `pitfalls.go` to avoid mistakes
-5. **Explore advanced patterns** - Study `advanced.go` for optimization techniques
-6. **Practice** - Implement your own concurrent data structures
-
-## 📚 Additional Resources
-
-- [Go sync package documentation](https://pkg.go.dev/sync)
-- [Go Memory Model](https://go.dev/ref/mem)
-- [Effective Go - Concurrency](https://go.dev/doc/effective_go#concurrency)
-- Source code: `src/sync/mutex.go` in Go repository
-
-## 🎯 Summary
-
-### Key Takeaways
-
-1. Mutexes protect shared state from concurrent access
-2. Go's implementation balances throughput and fairness (normal/starvation modes)
-3. Always use `defer` to unlock mutexes
-4. Keep critical sections as small as possible
-5. Never copy mutexes (use pointers, run `go vet`)
-6. Beware of deadlocks from inconsistent lock ordering
-7. Use RWMutex when reads greatly outnumber writes
-8. Consider alternatives: atomics, channels, immutability
-9. Profile before optimizing
-
-### Quick Reference
-
-| Operation | When to Use |
-|-----------|-------------|
-| `sync.Mutex` | Simple mutual exclusion |
-| `sync.RWMutex` | Many readers, few writers |
-| `sync.Once` | One-time initialization |
-| `sync.Cond` | Complex condition waiting |
-| `sync/atomic` | Single-variable operations |
-| Channels | Passing data between goroutines |
-
-## 🤝 Contributing
-
-This is a learning repository. Feel free to:
-- Report issues or inaccuracies
-- Suggest improvements
-- Add more examples
-- Enhance documentation
-
-## 📝 License
-
-This repository is for educational purposes.
-
----
-
-*Happy learning! Remember: "Don't communicate by sharing memory; share memory by communicating." - Rob Pike*
-# Learning Repository
-
-This repository contains educational materials and resources for learning various technical concepts.
-
-## Contents
-
-### Linux System Fundamentals
-- [**Linux Kernel-Level Buffers and System Fundamentals**](./linux-kernel-buffers.md) - Comprehensive guide covering:
-  - Memory management fundamentals
-  - Kernel-level buffering mechanisms (page cache, buffer cache, etc.)
-  - User space vs kernel space interactions
-  - Buffer types and their roles
-  - System calls and interfaces
-  - Practical examples and code snippets
-  - Performance considerations and tuning
-  - References and further reading
-
-## Getting Started
-
-Browse the documentation files to learn about different topics. Each guide includes theoretical explanations, practical examples, and references for deeper learning.
-This repository contains comprehensive documentation, examples, and best practices for various technologies and programming concepts.
-
-## 📂 Contents
-
-### Go Programming
-
-Explore Go packages with in-depth documentation, working examples, and test suites:
-
-- **[Go Atomic & Gomega Documentation](go/README.md)** - Complete guide to Go's atomic operations and Gomega testing library
 
 ## 🎯 What's Inside
 
 Each topic includes:
-- 📚 Comprehensive documentation
-- 💻 Working code examples
-- ✅ Test suites with real-world scenarios
-- 🎓 Best practices and common pitfalls
-- 📊 Performance considerations
 
-## 🚀 Quick Start
+- 📖 **Comprehensive Documentation** - Detailed explanations with theory and implementation details
+- 💻 **Working Code Examples** - Production-quality, runnable code
+- ✅ **Test Suites** - Real-world testing scenarios and best practices
+- 🔍 **Low-Level Details** - Under-the-hood implementation and hardware interactions
+- 📊 **Performance Considerations** - Optimization tips and benchmarking guidance
+- ⚠️ **Common Pitfalls** - Known issues and how to avoid them
 
-Navigate to any topic directory to get started:
+## 📂 Repository Structure
 
-```bash
-# Explore Go documentation and examples
-cd go
+```
+learning/
+├── README.md           # This file
+├── go/                 # Go programming resources
+│   ├── README.md       # Go topics overview
+│   ├── mutexes.md      # Mutex comprehensive guide
+│   ├── packages/       # Package-specific documentation
+│   ├── examples/       # Atomic operations examples
+│   └── examples-mutexes/ # Mutex usage examples
+└── linux/              # Linux system resources
+    ├── README.md       # Linux topics overview
+    └── kernel-buffers.md # Kernel buffering guide
 ```
 
-Each directory contains its own README with specific instructions.
+## 📖 Learning Path
 
-## 📖 Learning Resources
+### For Go Developers
 
-This repository is designed for:
-- Learning new technologies
-- Understanding low-level implementation details
-- Exploring best practices
-- Hands-on experimentation with working code
+1. **Start with Mutexes** - Understand basic synchronization
+   - Read [mutexes.md](go/mutexes.md)
+   - Run examples in [examples-mutexes/](go/examples-mutexes/)
+   
+2. **Explore Atomic Operations** - Learn lock-free programming
+   - Study [atomic.md](go/packages/atomic.md)
+   - Experiment with [atomic examples](go/examples/)
+   
+3. **Master Testing** - Write better tests
+   - Review [gomega.md](go/packages/gomega.md)
+   - Study test patterns in [atomic_examples_test.go](go/examples/atomic_examples_test.go)
+
+### For Systems Programmers
+
+1. **Linux Fundamentals** - Understand kernel internals
+   - Read [kernel-buffers.md](linux/kernel-buffers.md)
+   - Study buffer types and memory management
+
+## 🛠️ Tools and Prerequisites
+
+### Go Development
+- Go 1.16 or later
+- Race detector: `go run -race`
+- Vet tool: `go vet ./...`
+- Format: `go fmt ./...`
+
+### Linux Topics
+- Basic understanding of C and systems programming
+- Familiarity with Unix/Linux command line
+- Optional: Linux kernel source code for reference
+
+## 🤝 Contributing
+
+This is an educational repository. Contributions welcome:
+
+- 📝 Improve documentation clarity
+- 💡 Add more examples
+- 🐛 Fix inaccuracies
+- ✨ Suggest new topics
+- 📚 Add references and resources
+
+## 📝 License
+
+Educational purposes. Free to use and share.
 
 ---
 
-Happy learning! 🎓
-
+*Happy learning! Build deep understanding through theory, practice, and experimentation.* 🚀
