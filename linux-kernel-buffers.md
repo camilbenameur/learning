@@ -108,7 +108,7 @@ Historically separate from the page cache, now unified in modern Linux:
 When data is modified in memory:
 
 1. **Dirty Pages**: Modified pages not yet written to disk
-2. **Write-back Daemon (pdflush/flusher)**: Background threads that periodically flush dirty pages
+2. **Write-back Threads**: Background kernel threads (per-backing-device flusher threads in modern kernels, replacing the older pdflush) that periodically flush dirty pages
 3. **Write-back Triggers**:
    - Page has been dirty for more than 30 seconds (default)
    - Too many dirty pages in memory
@@ -470,6 +470,10 @@ Dirty:       Modified pages waiting to be written
 
 double benchmark_buffered() {
     FILE *fp = fopen("/tmp/test_buffered.dat", "w");
+    if (!fp) {
+        perror("fopen buffered");
+        return -1.0;
+    }
     clock_t start = clock();
     
     for (int i = 0; i < FILE_SIZE; i++) {
@@ -483,6 +487,10 @@ double benchmark_buffered() {
 
 double benchmark_unbuffered() {
     int fd = open("/tmp/test_unbuffered.dat", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0) {
+        perror("open unbuffered");
+        return -1.0;
+    }
     clock_t start = clock();
     
     char c = 'A';
@@ -497,6 +505,10 @@ double benchmark_unbuffered() {
 
 double benchmark_buffered_manual() {
     int fd = open("/tmp/test_manual.dat", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0) {
+        perror("open manual");
+        return -1.0;
+    }
     char buffer[BUFFER_SIZE];
     clock_t start = clock();
     
@@ -559,6 +571,12 @@ void check_cached_pages(const char *filename) {
     }
     
     unsigned char *vec = calloc(num_pages, sizeof(unsigned char));
+    if (!vec) {
+        perror("calloc");
+        munmap(addr, size);
+        close(fd);
+        return;
+    }
     if (mincore(addr, size, vec) != 0) {
         perror("mincore");
     } else {
@@ -645,13 +663,18 @@ int copy_file_traditional(const char *src, const char *dst) {
     
     char buffer[8192];
     size_t bytes;
+    int error = 0;
     while ((bytes = fread(buffer, 1, sizeof(buffer), src_fp)) > 0) {
-        fwrite(buffer, 1, bytes, dst_fp);
+        if (fwrite(buffer, 1, bytes, dst_fp) != bytes) {
+            perror("fwrite");
+            error = 1;
+            break;
+        }
     }
     
     fclose(src_fp);
     fclose(dst_fp);
-    return 0;
+    return error ? -1 : 0;
 }
 
 int main(int argc, char *argv[]) {
