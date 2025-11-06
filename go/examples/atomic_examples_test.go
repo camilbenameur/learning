@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -373,7 +374,7 @@ func TestSafeMapConcurrency(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func(id int) {
 			for j := 0; j < 10; j++ {
-				key := "key_" + string(rune('0'+id))
+				key := fmt.Sprintf("key_%d", id)
 				sm.Set(key, id*10+j)
 			}
 			done <- true
