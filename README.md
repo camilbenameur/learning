@@ -53,7 +53,7 @@ All examples are runnable Go programs that demonstrate key concepts:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Go 1.16 or later
+- Go 1.16 or later (examples tested with Go 1.24)
 
 ### Running Examples
 
